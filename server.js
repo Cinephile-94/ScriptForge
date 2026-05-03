@@ -703,8 +703,20 @@ function broadcastToRoom(scriptId, senderWs, msg) {
 function broadcastPresence(scriptId) {
   const room = rooms.get(scriptId);
   if (!room) return;
-  const clients = [...room].map(ws => awareness.get(ws.clientId)).filter(Boolean);
-  const data = JSON.stringify({ type: 'presence', clients });
+
+  const allClients = [...room].map(ws => awareness.get(ws.clientId)).filter(Boolean);
+  
+  // Deduplicate by user ID
+  const uniqueClients = [];
+  const seenIds = new Set();
+  for (const c of allClients) {
+    if (!seenIds.has(c.user.id)) {
+      uniqueClients.push(c);
+      seenIds.add(c.user.id);
+    }
+  }
+
+  const data = JSON.stringify({ type: 'presence', clients: uniqueClients });
   room.forEach(ws => {
     if (ws.readyState === WebSocket.OPEN) ws.send(data);
   });
