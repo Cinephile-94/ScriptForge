@@ -208,9 +208,16 @@ function onBlockInput(el, index) {
     // We handle visual caps via CSS text-transform, but store as typed
   }
 
-  block.text = text.trim();
+  block.text = text; // Keep exact text for syncing
   markDirty();
   triggerHistorySave(); // Debounced typing snapshots
+
+  // BROADCAST LIVE TYPING: Every keystroke is sent to collaborators
+  window.ScriptCollab?.broadcastOp({ 
+    type: 'textUpdate', 
+    index: index, 
+    text: text 
+  });
 
   // Update autocomplete for character blocks
   if (block.type === 'character') {
@@ -219,14 +226,14 @@ function onBlockInput(el, index) {
     hideAutocomplete();
   }
 
-  // Debounce updates
+  // Debounce non-critical UI updates
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     updateSceneNav();
     updateStatusBar();
     extractCharacterNames();
     scheduleAutoSave();
-  }, 500);
+  }, 1000);
 }
 
 function onBlockKeydown(e, el, index) {
@@ -796,8 +803,30 @@ window.ScriptEditor = {
         if (blocks[op.index]) {
           blocks[op.index].text = op.text;
           const el = getBlockEl(op.index);
-          if (el && el !== document.activeElement) {
-            el.textContent = op.text;
+          if (el) {
+            if (el === document.activeElement) {
+              // Preserve caret position for the active user
+              const selection = window.getSelection();
+              if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const offset = range.startOffset;
+                el.textContent = op.text;
+                // Try to restore caret
+                try {
+                  const newRange = document.createRange();
+                  const textNode = el.childNodes[0] || el;
+                  const newOffset = Math.min(offset, op.text.length);
+                  newRange.setStart(textNode, newOffset);
+                  newRange.collapse(true);
+                  selection.removeAllRanges();
+                  selection.addRange(newRange);
+                } catch (e) {}
+              } else {
+                el.textContent = op.text;
+              }
+            } else {
+              el.textContent = op.text;
+            }
           }
         }
         break;
