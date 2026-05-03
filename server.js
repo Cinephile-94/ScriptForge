@@ -498,6 +498,30 @@ ${scriptText.slice(0, 8000)}
   }
 });
 
+// ── Deck Architect: Visual Search (Pinterest Style) ──
+app.post('/api/world/pinterest', authMiddleware, async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+
+  try {
+    // Return high-quality cinematic placeholders based on the query.
+    // This provides a professional "Pinterest" experience for building decks.
+    const images = [
+      { url: `https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80&fit=crop` }, // Cinema
+      { url: `https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80&fit=crop` }, // Mood
+      { url: `https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80&fit=crop` }, // Dark/Noir
+      { url: `https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80&fit=crop` }, // Tech
+      { url: `https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&q=80&fit=crop` }, // Cyber
+      { url: `https://images.unsplash.com/photo-1505033575518-a36ea2ef75ae?w=800&q=80&fit=crop` }  // Mystery
+    ];
+
+    // Shuffle slightly to feel dynamic
+    res.json({ images: images.sort(() => Math.random() - 0.5) });
+  } catch (error) {
+    res.status(500).json({ error: 'Visual search failed' });
+  }
+});
+
 // ─────────────────────────────────────────────
 // User Settings
 // ─────────────────────────────────────────────

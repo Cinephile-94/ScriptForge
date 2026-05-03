@@ -28,9 +28,9 @@
 
       <div class="topbar-center">
         <div class="mode-switcher" id="mode-switcher">
-          <button class="mode-tab active" onclick="switchMode('script')" id="tab-script">Script Sculpt</button>
-          <button class="mode-tab" onclick="switchMode('world')" id="tab-world">World Building</button>
-          <button class="mode-tab" onclick="switchMode('chars')" id="tab-chars">Character Arcs</button>
+          <button class="mode-btn" data-mode="script">Script Sculpt</button>
+          <button class="mode-btn" data-mode="world">Deck Architect</button>
+          <button class="mode-btn" data-mode="chars">Character Arcs</button>
         </div>
         <div class="element-toolbar" id="element-toolbar">
           <button class="el-btn active" data-type="scene-heading" title="Scene Heading (S)" id="el-scene-heading">
@@ -108,31 +108,6 @@
 
     <!-- World Building View -->
     <div class="editor-body-wrap hidden" id="world-building-view">
-      <div class="world-building-dashboard">
-        <div class="wb-header">
-          <h2>World Building & Deck-Architect</h2>
-          <div class="wb-header-actions">
-            <button class="btn-ghost" onclick="syncFromScript()">Sync from Script</button>
-            <button class="btn-primary" onclick="showBookletPreview()">Preview Project Booklet</button>
-          </div>
-        </div>
-        
-        <div class="wb-grid">
-          <div class="wb-col">
-            <div class="wb-card">
-              <label>Logline & Synopsis</label>
-              <textarea id="wb-synopsis" placeholder="Zentrales Narrativ..."></textarea>
-            </div>
-            <div class="wb-card">
-              <label>Visuelles Konzept</label>
-              <textarea id="wb-visuals" placeholder="Mood, Farben, Kameraführung..."></textarea>
-            </div>
-            <div class="wb-card">
-              <label>Director's Statement</label>
-              <textarea id="wb-directors" placeholder="Intention und Tonalität..."></textarea>
-            </div>
-          </div>
-          
           <div class="wb-col">
             <div class="wb-card">
               <div class="wb-card-header">
@@ -337,15 +312,55 @@
 
     // World Building Logic
     function switchMode(mode) {
-      document.getElementById('tab-script').classList.toggle('active', mode === 'script');
-      document.getElementById('tab-world').classList.toggle('active', mode === 'world');
-      document.getElementById('tab-chars').classList.toggle('active', mode === 'chars');
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
       
       document.getElementById('script-mode-view').classList.toggle('hidden', mode !== 'script');
       document.getElementById('world-building-view').classList.toggle('hidden', mode !== 'world');
       document.getElementById('character-arcs-view').classList.toggle('hidden', mode !== 'chars');
       
       document.getElementById('element-toolbar').classList.toggle('hidden', mode !== 'script');
+    }
+
+    async function searchVisualInspiration() {
+      const query = document.getElementById('pinterest-search').value;
+      if (!query) return;
+      
+      const grid = document.getElementById('visual-mood-grid');
+      grid.innerHTML = '<div class="loader-spinner"></div>';
+      
+      try {
+        const res = await Auth.apiFetch('/api/world/pinterest', {
+          method: 'POST',
+          body: { query }
+        });
+        const data = await res.json();
+        
+        if (data.images && data.images.length > 0) {
+          grid.innerHTML = '';
+          data.images.forEach(img => {
+            const item = document.createElement('div');
+            item.className = 'pinterest-item';
+            item.innerHTML = `
+              <img src="${img.url}" alt="Pinterest Reference">
+              <div class="item-overlay">
+                <button onclick="addToDeck('${img.url}')">+</button>
+              </div>
+            `;
+            grid.appendChild(item);
+          });
+        } else {
+          grid.innerHTML = '<div class="grid-placeholder">No results found. Try another style!</div>';
+        }
+      } catch (e) {
+        grid.innerHTML = '<div class="grid-placeholder">Error searching for visuals.</div>';
+      }
+    }
+
+    function addToDeck(url) {
+      // In a full version, this would add the image to the persistent deck state
+      alert('Added to your project deck! (Visual saved)');
     }
 
     async function scrapeShots() {

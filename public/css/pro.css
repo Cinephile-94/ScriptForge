@@ -140,3 +140,88 @@
   transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 .btn-google:hover { background: #f8f9fa; box-shadow: 0 1px 6px rgba(0,0,0,0.15); }
+
+/* Deck Architect - Pinterest Grid */
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.deck-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.deck-card.wide { grid-column: span 2; }
+.deck-card.tall { grid-row: span 2; }
+
+.pinterest-grid {
+  columns: 2;
+  column-gap: 10px;
+  margin-top: 1rem;
+}
+
+.pinterest-item {
+  position: relative;
+  margin-bottom: 10px;
+  break-inside: avoid;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #222;
+  transition: transform 0.3s ease;
+}
+
+.pinterest-item:hover { transform: scale(1.02); }
+
+.pinterest-item img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.item-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  transition: opacity 0.3s;
+}
+
+.pinterest-item:hover .item-overlay { opacity: 1; }
+
+.visual-search-box {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.visual-search-box input {
+  flex: 1;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong);
+  color: white;
+  padding: 0.6rem;
+  border-radius: 8px;
+}
+
+.loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
