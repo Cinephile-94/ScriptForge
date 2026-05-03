@@ -156,10 +156,10 @@ function createBlockEl(block, index) {
   // Text only — NO child spans inside contenteditable
   el.textContent = block.text || '';
 
-  el.addEventListener('input', () => onBlockInput(el, index));
-  el.addEventListener('keydown', (e) => onBlockKeydown(e, el, index));
-  el.addEventListener('focus', () => onBlockFocus(el, index));
-  el.addEventListener('blur', () => onBlockBlur(el, index));
+  el.addEventListener('input', () => onBlockInput(el));
+  el.addEventListener('keydown', (e) => onBlockKeydown(e, el));
+  el.addEventListener('focus', () => onBlockFocus(el));
+  el.addEventListener('blur', () => onBlockBlur(el));
   el.addEventListener('paste', onPaste);
 
   return el;
@@ -195,38 +195,31 @@ function refreshBlockElement(index) {
 }
 
 // ── Input Handlers ──
-function onBlockInput(el, index) {
+function onBlockInput(el) {
+  const index = parseInt(el.dataset.index);
   const block = blocks[index];
   if (!block) return;
 
-  // Get text, strip scene number span content
-  let text = el.innerText || el.textContent || '';
+  let text = el.textContent || '';
 
-  // For auto-caps types
-  if (block.type === 'scene-heading' || block.type === 'character' ||
-      block.type === 'transition' || block.type === 'shot') {
-    // We handle visual caps via CSS text-transform, but store as typed
-  }
-
-  block.text = text; // Keep exact text for syncing
+  block.text = text;
   markDirty();
-  triggerHistorySave(); // Debounced typing snapshots
+  triggerHistorySave();
 
-  // BROADCAST LIVE TYPING: Every keystroke is sent to collaborators
+  // BROADCAST LIVE TYPING
   window.ScriptCollab?.broadcastOp({ 
     type: 'textUpdate', 
     index: index, 
     text: text 
   });
 
-  // Update autocomplete for character blocks
+  // Update autocomplete for character
   if (block.type === 'character') {
     showAutocomplete(el, text.trim());
   } else {
     hideAutocomplete();
   }
 
-  // Debounce non-critical UI updates
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     updateSceneNav();
@@ -236,7 +229,8 @@ function onBlockInput(el, index) {
   }, 1000);
 }
 
-function onBlockKeydown(e, el, index) {
+function onBlockKeydown(e, el) {
+  const index = parseInt(el.dataset.index);
   const block = blocks[index];
 
   // Handle autocomplete navigation
@@ -326,7 +320,8 @@ function onBlockKeydown(e, el, index) {
   }
 }
 
-function onBlockFocus(el, index) {
+function onBlockFocus(el) {
+  const index = parseInt(el.dataset.index);
   focusedIndex = index;
   el.classList.add('focused');
   updateToolbarActive(blocks[index]?.type);
@@ -334,7 +329,8 @@ function onBlockFocus(el, index) {
   hideAutocomplete();
 }
 
-function onBlockBlur(el, index) {
+function onBlockBlur(el) {
+  const index = parseInt(el.dataset.index);
   el.classList.remove('focused');
   // Sync text
   const block = blocks[index];
