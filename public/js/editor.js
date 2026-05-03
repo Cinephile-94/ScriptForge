@@ -184,6 +184,10 @@ function getBlockEl(index) {
   return page.querySelector(`[data-index="${index}"]`);
 }
 
+function getBlockElById(id) {
+  return page.querySelector(`[data-id="${id}"]`);
+}
+
 function refreshBlockElement(index) {
   const block = blocks[index];
   if (!block) return;
@@ -206,10 +210,10 @@ function onBlockInput(el) {
   markDirty();
   triggerHistorySave();
 
-  // BROADCAST LIVE TYPING
+  // BROADCAST LIVE TYPING: Use ID instead of index for stability
   window.ScriptCollab?.broadcastOp({ 
     type: 'textUpdate', 
-    index: index, 
+    id: block.id, 
     text: text 
   });
 
@@ -417,7 +421,7 @@ function changeBlockType(index, newType) {
 
   updateToolbarActive(newType);
   markDirty();
-  window.ScriptCollab?.broadcastOp({ type: 'typeChange', index, newType });
+  window.ScriptCollab?.broadcastOp({ type: 'typeChange', id: block.id, newType });
 }
 
 function focusBlock(index, position = 'end') {
@@ -796,18 +800,18 @@ window.ScriptEditor = {
         }
         break;
       case 'textUpdate':
-        if (blocks[op.index]) {
-          blocks[op.index].text = op.text;
-          const el = getBlockEl(op.index);
+        // Use ID to find the block for absolute reliability
+        const blockIndex = blocks.findIndex(b => b.id === op.id);
+        if (blockIndex !== -1) {
+          blocks[blockIndex].text = op.text;
+          const el = getBlockElById(op.id);
           if (el) {
             if (el === document.activeElement) {
-              // Preserve caret position for the active user
               const selection = window.getSelection();
               if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 const offset = range.startOffset;
                 el.textContent = op.text;
-                // Try to restore caret
                 try {
                   const newRange = document.createRange();
                   const textNode = el.childNodes[0] || el;
@@ -824,6 +828,13 @@ window.ScriptEditor = {
               el.textContent = op.text;
             }
           }
+        }
+        break;
+      case 'typeChange':
+        const tIndex = blocks.findIndex(b => b.id === op.id);
+        if (tIndex !== -1) {
+          blocks[tIndex].type = op.newType;
+          refreshBlockElement(tIndex);
         }
         break;
       case 'replaceBlocks':

@@ -624,10 +624,17 @@ wss.on('connection', (ws, req) => {
             msg.ops.forEach(op => {
               if (op.type === 'insert') doc.content.splice(op.index, 0, op.block);
               if (op.type === 'delete') doc.content.splice(op.index, 1);
-              if (op.type === 'textUpdate' && doc.content[op.index]) doc.content[op.index].text = op.text;
-              if (op.type === 'typeChange' && doc.content[op.index]) doc.content[op.index].type = op.newType;
-              if (op.type === 'metadataUpdate' && doc.content[op.index]) {
-                doc.content[op.index] = { ...doc.content[op.index], ...op.meta };
+              if (op.type === 'textUpdate') {
+                const b = doc.content.find(x => x.id === op.id);
+                if (b) b.text = op.text;
+              }
+              if (op.type === 'typeChange') {
+                const b = doc.content.find(x => x.id === op.id);
+                if (b) b.type = op.newType;
+              }
+              if (op.type === 'metadataUpdate') {
+                const b = doc.content.find(x => x.id === op.id);
+                if (b) Object.assign(b, op.meta);
               }
             });
           }
