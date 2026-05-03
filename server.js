@@ -620,6 +620,7 @@ wss.on('connection', (ws, req) => {
           // Update our live cache
           const doc = roomDocs.get(scriptId);
           if (doc && msg.ops) {
+            doc.isDirty = true; // Mark for background auto-save
             msg.ops.forEach(op => {
               if (op.type === 'insert') doc.content.splice(op.index, 0, op.block);
               if (op.type === 'delete') doc.content.splice(op.index, 1);
@@ -701,6 +702,25 @@ function broadcastPresence(scriptId) {
     if (ws.readyState === WebSocket.OPEN) ws.send(data);
   });
 }
+
+// ── Background Auto-Save (Flush Cache to DB) ──
+setInterval(() => {
+  roomDocs.forEach((doc, scriptId) => {
+    if (doc.isDirty) {
+      try {
+        const wordCount = doc.content.reduce((acc, b) => 
+          acc + (b.text ? b.text.trim().split(/\s+/).filter(Boolean).length : 0), 0);
+        const sceneCount = doc.content.filter(b => b.type === 'scene-heading').length;
+        
+        stmts.updateScript.run(doc.title, JSON.stringify(doc.content), sceneCount, wordCount, scriptId);
+        doc.isDirty = false;
+        // console.log(`[AutoSave] Flushed ${scriptId} to DB`);
+      } catch (e) {
+        console.error(`[AutoSave] Failed for ${scriptId}:`, e.message);
+      }
+    }
+  });
+}, 10000); // Every 10 seconds
 
 // ─────────────────────────────────────────────
 // Start
