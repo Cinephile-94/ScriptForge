@@ -1,0 +1,416 @@
+/* ══════════════════════════════════════════════
+   ScriptForge — Screenplay Formatting CSS
+   Hollywood Spec: Courier Prime 12pt
+   ══════════════════════════════════════════════ */
+
+:root {
+  --page-width: 816px;
+  --page-min-height: 1056px;
+  --page-padding-top: 96px;
+  --page-padding-bottom: 96px;
+  --page-padding-left: 144px;
+  --page-padding-right: 96px;
+  --content-width: 576px;
+
+  --offset-character: 196px;
+  --offset-dialogue: 72px;
+  --offset-parenthetical: 144px;
+
+  --width-character: 192px;
+  --width-dialogue: 264px;
+  --width-parenthetical: 216px;
+
+  --screenplay-line-height: 1.5;
+  --screenplay-font-size: 13px;
+
+  /* Scene number margin width — enough room for "123." */
+  --scene-num-width: 132px;
+}
+
+/* ── Page ── */
+.screenplay-page {
+  width: var(--page-width);
+  min-height: var(--page-min-height);
+  background: #ffffff;
+  color: #111111;
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-size: var(--screenplay-font-size);
+  line-height: var(--screenplay-line-height);
+  padding: var(--page-padding-top) var(--page-padding-right) var(--page-padding-bottom) var(--page-padding-left);
+  box-shadow: 0 2px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.08);
+  position: relative;
+  outline: none;
+}
+
+/* ── Page Break ── */
+.page-break {
+  position: relative;
+  width: calc(100% + var(--page-padding-left) + var(--page-padding-right));
+  margin: 0 calc(-1 * var(--page-padding-left));
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ebebeb;
+  border-top: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
+  font-size: 9px;
+  color: #aaa;
+  font-family: var(--font-ui);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════
+   BASE BLOCK
+   ══════════════════════════════════════════════ */
+.screenplay-block {
+  position: relative;
+  outline: none;
+  min-height: 1.5em;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  caret-color: #000;
+  cursor: text;
+}
+
+.screenplay-block:empty::before {
+  content: attr(data-placeholder);
+  color: #bbb;
+  pointer-events: none;
+  font-style: normal;
+}
+
+/* Focused block: subtle left rule, no gold glowing box */
+.screenplay-block.focused {
+  background: rgba(0,0,0,0.018);
+}
+
+/* Element type label — right margin, shown on hover */
+.screenplay-block::after {
+  content: attr(data-type-label);
+  position: absolute;
+  right: calc(-1 * var(--page-padding-right) + 6px);
+  top: 2px;
+  font-size: 8.5px;
+  font-family: var(--font-ui);
+  color: #c0c0c0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.screenplay-block:hover::after,
+.screenplay-block.focused::after {
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════════════
+   SCENE HEADING
+   ALL CAPS · Bold · underlined
+   Scene numbers appear in BOTH margins, same size as script text
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="scene-heading"] {
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 1.2em;
+  margin-bottom: 0.2em;
+  width: 100%;
+  border-bottom: 1px solid rgba(0,0,0,0.15);
+  padding-bottom: 1px;
+}
+
+.screenplay-block[data-type="scene-heading"]:empty::before {
+  content: 'INT./EXT. LOCATION — DAY/NIGHT';
+  font-weight: normal;
+  text-transform: none;
+  border-bottom: none;
+}
+
+/*
+  Scene number — LEFT margin.
+  Matches the script font size exactly (13px = same as body text).
+  Positioned in the 1.5" left margin at a fixed offset.
+*/
+.scene-number {
+  position: absolute;
+  /* Sits in the left margin: padding-left is 144px, scene num is ~0.75" from page edge */
+  left: calc(-1 * var(--page-padding-left) + 8px);
+  top: 0;
+  width: calc(var(--page-padding-left) - 16px);  /* fills margin cleanly */
+  font-size: var(--screenplay-font-size);         /* SAME SIZE as script text */
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #555;
+  line-height: var(--screenplay-line-height);
+  user-select: none;
+  text-align: right;
+  padding-right: 10px;
+}
+
+/* Scene number mirrored on right side */
+.scene-number-right {
+  position: absolute;
+  right: calc(-1 * var(--page-padding-right) + 8px);
+  top: 0;
+  font-size: var(--screenplay-font-size);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #555;
+  line-height: var(--screenplay-line-height);
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════════
+   ACTION
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="action"] {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+  width: 100%;
+}
+
+.screenplay-block[data-type="action"]:empty::before {
+  content: 'Action...';
+}
+
+/* ══════════════════════════════════════════════
+   CHARACTER
+   ALL CAPS · indented ~3.7" from left edge
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="character"] {
+  text-transform: uppercase;
+  font-weight: 400;
+  margin-left: var(--offset-character);
+  width: var(--width-character);
+  margin-top: 0.9em;
+  margin-bottom: 0;
+}
+
+.screenplay-block[data-type="character"]:empty::before {
+  content: 'CHARACTER NAME';
+  text-transform: none;
+}
+
+/* ══════════════════════════════════════════════
+   DIALOGUE
+   indented ~2.5" from left, 3.5" wide
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="dialogue"] {
+  margin-left: var(--offset-dialogue);
+  width: var(--width-dialogue);
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.screenplay-block[data-type="dialogue"]:empty::before {
+  content: 'Dialogue...';
+}
+
+/* ══════════════════════════════════════════════
+   PARENTHETICAL
+   Lowercase · in parens · ~3.1" from left
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="parenthetical"] {
+  margin-left: var(--offset-parenthetical);
+  width: var(--width-parenthetical);
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.screenplay-block[data-type="parenthetical"]::before {
+  content: '(';
+  color: #222;
+}
+
+.screenplay-block[data-type="parenthetical"]:not(:empty)::before {
+  content: '(';
+}
+
+.screenplay-block[data-type="parenthetical"]::after {
+  content: ')';
+  color: #222;
+  position: static;
+  opacity: 1;
+  font-size: inherit;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+  right: auto;
+  top: auto;
+}
+
+.screenplay-block[data-type="parenthetical"]:empty::before {
+  content: '(beat)';
+  color: #bbb;
+}
+
+/* ══════════════════════════════════════════════
+   TRANSITION
+   ALL CAPS · right-aligned
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="transition"] {
+  text-transform: uppercase;
+  text-align: right;
+  width: 100%;
+  margin-top: 0.9em;
+  margin-bottom: 0.9em;
+}
+
+.screenplay-block[data-type="transition"]:empty::before {
+  content: 'CUT TO:';
+  text-transform: none;
+  text-align: right;
+}
+
+/* ══════════════════════════════════════════════
+   SHOT
+   ALL CAPS · flush left
+   ══════════════════════════════════════════════ */
+.screenplay-block[data-type="shot"] {
+  text-transform: uppercase;
+  margin-top: 0.6em;
+  margin-bottom: 0.2em;
+  width: 100%;
+}
+
+.screenplay-block[data-type="shot"]:empty::before {
+  content: 'CLOSE ON:';
+  text-transform: none;
+}
+
+/* ══════════════════════════════════════════════
+   Selection
+   ══════════════════════════════════════════════ */
+.screenplay-block ::selection {
+  background: rgba(0, 80, 200, 0.12);
+}
+
+/* ══════════════════════════════════════════════
+   Remote Cursors
+   ══════════════════════════════════════════════ */
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  pointer-events: none;
+  z-index: 10;
+  animation: cursorBlink 1s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.remote-cursor-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  padding: 1px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+  color: white;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════
+   Responsive
+   ══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  :root {
+    --page-width: 100%;
+    --page-padding-left: 56px;
+    --page-padding-right: 32px;
+    --offset-character: 120px;
+    --width-character: 180px;
+    --offset-dialogue: 40px;
+    --width-dialogue: 100%;
+    --offset-parenthetical: 80px;
+  }
+
+  .page-area { padding: 1rem 0; }
+  .screenplay-page { box-shadow: none; min-height: 100vh; }
+  .screenplay-block::after { display: none; }
+  .scene-number-right { display: none; }
+}
+
+/* ── Scene Number Wrap (sibling element, never inside contenteditable) ── */
+.scene-number-wrap {
+  position: relative;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  user-select: none;
+}
+
+.scene-number-wrap .scene-number {
+  position: absolute;
+  left: calc(-1 * var(--page-padding-left) + 8px);
+  top: calc(var(--screenplay-line-height) * var(--screenplay-font-size) + 1.2em); /* align to scene heading text */
+  width: calc(var(--page-padding-left) - 16px);
+  font-size: var(--screenplay-font-size);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #555;
+  line-height: var(--screenplay-line-height);
+  text-align: right;
+  padding-right: 10px;
+}
+
+.scene-number-wrap .scene-number-right {
+  position: absolute;
+  right: calc(-1 * var(--page-padding-right) + 8px);
+  top: calc(var(--screenplay-line-height) * var(--screenplay-font-size) + 1.2em);
+  font-size: var(--screenplay-font-size);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #555;
+  line-height: var(--screenplay-line-height);
+}
+
+/* ── Scene Numbers via data-scene-num attribute ──
+   Zero DOM children needed — pure CSS, can't corrupt contenteditable text.
+   The ::before and ::after pseudo-elements are not part of innerText.
+*/
+.screenplay-block[data-type="scene-heading"][data-scene-num]::before {
+  content: attr(data-scene-num);
+  position: absolute;
+  left: calc(-1 * var(--page-padding-left) + 8px);
+  top: 0;
+  width: calc(var(--page-padding-left) - 16px);
+  font-size: var(--screenplay-font-size);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #666;
+  line-height: var(--screenplay-line-height);
+  text-align: right;
+  padding-right: 10px;
+  pointer-events: none;
+  user-select: none;
+  /* Override the type-label ::before — this takes precedence for scene-headings with scene-num */
+}
+
+.screenplay-block[data-type="scene-heading"][data-scene-num]::after {
+  content: attr(data-scene-num);
+  position: absolute;
+  right: calc(-1 * var(--page-padding-right) + 8px);
+  top: 0;
+  font-size: var(--screenplay-font-size);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  color: #666;
+  line-height: var(--screenplay-line-height);
+  pointer-events: none;
+  user-select: none;
+  /* Override the type-label ::after */
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+}

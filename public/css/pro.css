@@ -1,0 +1,142 @@
+/* ScriptForge Pro — Override: Inter font, no emojis, Dramaqueen-style */
+:root {
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --bg-base: #0c0c0e;
+  --bg-surface: #111114;
+  --bg-elevated: #18181d;
+  --bg-hover: #1e1e24;
+  --bg-active: #24242c;
+  --gold: #b8965a;
+  --gold-light: #d4b07a;
+  --gold-dim: rgba(184,150,90,0.12);
+  --gold-border: rgba(184,150,90,0.25);
+  --text-primary: #e8e8ec;
+  --text-secondary: #8888a0;
+  --text-muted: #4a4a60;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.10);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+/* Topbar buttons — text only, no icons */
+.topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+.topbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.topbar-btn--primary {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border-color: var(--gold-border);
+}
+.topbar-btn--primary:hover { background: rgba(184,150,90,0.2); }
+
+/* Logo wordmark */
+.logo-wordmark {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.nav-wordmark {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.topbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-strong);
+  margin: 0 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Auth wordmark */
+.auth-wordmark {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+.modal-logo p { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Empty state — no emoji */
+.empty-icon-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+.empty-state p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+
+/* Connection indicator — text only */
+.conn-indicator { font-size: 0.72rem; color: var(--text-muted); }
+.conn-indicator.online { color: #52c47c; }
+.conn-indicator.offline { color: var(--text-muted); }
+
+/* Save indicator dot */
+.save-indicator {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.2s;
+}
+.save-indicator.unsaved { background: var(--gold); }
+.save-indicator.saved { background: #52c47c; }
+
+/* Scene nav — tighter, more professional */
+.scene-nav-item { font-size: 0.76rem; font-family: var(--font-ui); }
+
+/* Export menu — no icons */
+.export-menu-item-icon { display: none; }
+
+/* Script card — cleaner */
+.script-card-icon { display: none; }
+
+/* AI toolbar label */
+.ai-toolbar-label { font-size: 0.68rem; letter-spacing: 0.08em; }
+
+/* Guide panel toggle buttons added by JS */
+#guide-toggle-btn, #ai-toggle-btn { font-size: 0.78rem; }
+
+/* Google Sign In Button */
+.oauth-divider {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--text-muted); font-size: 0.78rem;
+}
+.oauth-divider::before, .oauth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  width: 100%; padding: 0.65rem 1rem;
+  background: #fff; color: #3c4043;
+  border: 1px solid #dadce0; border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: 0.875rem; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-google:hover { background: #f8f9fa; box-shadow: 0 1px 6px rgba(0,0,0,0.15); }

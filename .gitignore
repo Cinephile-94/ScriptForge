@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.db
+*.sqlite
+data/
+*.pdf
+*.docx
+*.fdx
+.DS_Store

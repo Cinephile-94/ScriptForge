@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScriptForge — Editor</title>
+  <meta name="description" content="Professional screenplay editor with real-time collaboration." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/screenplay.css" />
+  <link rel="stylesheet" href="/css/pro.css" />
+</head>
+<body class="editor-body">
+
+  <div class="editor-shell">
+
+    <!-- Top Bar -->
+    <header class="editor-topbar" id="editor-topbar">
+      <div class="topbar-left">
+        <a href="/" class="logo-wordmark" title="Dashboard">ScriptForge</a>
+        <span class="topbar-divider"></span>
+        <div class="title-area">
+          <input type="text" id="script-title" class="title-input" value="Untitled Script" spellcheck="false" />
+          <span class="save-indicator" id="save-indicator" title="All saved"></span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="mode-switcher" id="mode-switcher">
+          <button class="mode-tab active" onclick="switchMode('script')" id="tab-script">Script Sculpt</button>
+          <button class="mode-tab" onclick="switchMode('world')" id="tab-world">World Building</button>
+          <button class="mode-tab" onclick="switchMode('chars')" id="tab-chars">Character Arcs</button>
+        </div>
+        <div class="element-toolbar" id="element-toolbar">
+          <button class="el-btn active" data-type="scene-heading" title="Scene Heading (S)" id="el-scene-heading">
+            <span class="el-label">Scene</span><kbd>S</kbd>
+          </button>
+          <button class="el-btn" data-type="action" title="Action (A)" id="el-action">
+            <span class="el-label">Action</span><kbd>A</kbd>
+          </button>
+          <button class="el-btn" data-type="character" title="Character (C)" id="el-character">
+            <span class="el-label">Character</span><kbd>C</kbd>
+          </button>
+          <button class="el-btn" data-type="dialogue" title="Dialogue (D)" id="el-dialogue">
+            <span class="el-label">Dialogue</span><kbd>D</kbd>
+          </button>
+          <div class="el-more-wrapper">
+            <button class="el-btn el-more-trigger" title="More elements">+</button>
+            <div class="el-more-menu hidden" id="el-more-menu">
+              <button class="el-menu-item" data-type="parenthetical">Parenthetical <kbd>P</kbd></button>
+              <button class="el-menu-item" data-type="transition">Transition <kbd>T</kbd></button>
+              <button class="el-menu-item" data-type="shot">Shot <kbd>H</kbd></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="presence-bar" id="presence-bar"></div>
+        <button class="topbar-btn" onclick="toggleTheme()" title="Toggle Theme" id="theme-toggle-btn">Theme</button>
+        <div class="export-dropdown-wrapper">
+          <button class="topbar-btn" id="actions-btn">Actions ▾</button>
+          <div class="export-menu hidden" id="actions-menu">
+            <button class="export-menu-item" onclick="inviteCollaborator()">Invite Collaborator</button>
+            <button class="export-menu-item" onclick="toggleGuide()">Story Guide</button>
+            <button class="export-menu-item" onclick="toggleNotes()">Script Notes</button>
+          </div>
+        </div>
+        <button class="topbar-btn" id="ai-toggle-btn" title="AI Assistant" onclick="toggleAIPanel()">AI Chat</button>
+        <div class="export-dropdown-wrapper" id="export-wrapper">
+          <button class="topbar-btn" onclick="toggleExportMenu()" title="Export" id="export-btn">Export</button>
+          <div class="export-menu hidden" id="export-menu">
+            <button class="export-menu-item" onclick="exportFormat('pdf')">PDF</button>
+            <button class="export-menu-item" onclick="exportFormat('docx')">Word (.docx)</button>
+            <button class="export-menu-item" onclick="exportFormat('fdx')">Final Draft (.fdx)</button>
+          </div>
+        </div>
+        <button class="topbar-btn topbar-btn--primary" onclick="saveScript()" id="save-btn">Save</button>
+      </div>
+    </header>
+
+    <div class="editor-body-wrap" id="script-mode-view">
+
+      <!-- Scene Navigator -->
+      <aside class="scene-nav" id="scene-nav">
+        <div class="scene-nav-header">
+          <span>Outline</span>
+          <button class="btn-ghost btn-xs" onclick="syncAllBeats()" title="AI Sync all beats from script">Sync All</button>
+        </div>
+        <div class="scene-nav-list" id="scene-nav-list"></div>
+      </aside>
+
+      <!-- Screenplay Page -->
+      <div class="page-area" id="page-area">
+        <div class="screenplay-page" id="screenplay-page"></div>
+      </div>
+
+      <!-- Notes Panel -->
+      <aside class="notes-panel hidden" id="notes-panel">
+        <div class="notes-header">
+          Notes
+          <button onclick="toggleNotes()" class="topbar-btn">Close</button>
+        </div>
+        <textarea id="notes-area" class="notes-textarea" placeholder="Notes for this script…"></textarea>
+      </aside>
+    </div>
+
+    <!-- World Building View -->
+    <div class="editor-body-wrap hidden" id="world-building-view">
+      <div class="world-building-dashboard">
+        <div class="wb-header">
+          <h2>World Building & Deck-Architect</h2>
+          <div class="wb-header-actions">
+            <button class="btn-ghost" onclick="syncFromScript()">Sync from Script</button>
+            <button class="btn-primary" onclick="showBookletPreview()">Preview Project Booklet</button>
+          </div>
+        </div>
+        
+        <div class="wb-grid">
+          <div class="wb-col">
+            <div class="wb-card">
+              <label>Logline & Synopsis</label>
+              <textarea id="wb-synopsis" placeholder="Zentrales Narrativ..."></textarea>
+            </div>
+            <div class="wb-card">
+              <label>Visuelles Konzept</label>
+              <textarea id="wb-visuals" placeholder="Mood, Farben, Kameraführung..."></textarea>
+            </div>
+            <div class="wb-card">
+              <label>Director's Statement</label>
+              <textarea id="wb-directors" placeholder="Intention und Tonalität..."></textarea>
+            </div>
+          </div>
+          
+          <div class="wb-col">
+            <div class="wb-card">
+              <div class="wb-card-header">
+                <label>Cinematic Shot References</label>
+                <button class="btn-accent btn-sm" onclick="scrapeShots()">Auto-Scrape based on Concept</button>
+              </div>
+              <div class="wb-shot-grid" id="wb-shot-grid">
+                <div class="wb-shot-empty">No shots generated yet. Describe your visual concept and click Auto-Scrape.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Arcs View -->
+    <div class="main-content hidden" id="character-arcs-view">
+      <div class="world-building-dashboard">
+        <div class="wb-header">
+          <h2>Character Psychological Tracker</h2>
+          <div class="wb-header-actions">
+            <button class="btn-primary" onclick="analyzeCharacterArcs()">Analyze Arcs with AI</button>
+          </div>
+        </div>
+        
+        <div class="char-arc-grid" id="char-arc-grid">
+          <div class="wb-shot-empty">Click "Analyze Arcs with AI" to generate psychological trajectories for your protagonists.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beat Editor Modal -->
+  <div class="modal-overlay hidden" id="beat-modal">
+    <div class="modal-box">
+      <h3>Edit Scene Structure</h3>
+      <p id="beat-scene-title" style="font-weight:600;margin-bottom:1rem;"></p>
+      
+      <div class="wb-card" style="margin-bottom:1rem;">
+        <label>Scene Beat (Summary)</label>
+        <textarea id="beat-input" placeholder="What happens in this scene?"></textarea>
+      </div>
+      
+      <div class="wb-card">
+        <label>Dramaturgical Function</label>
+        <select id="func-input" class="title-input" style="width:100%;background:var(--bg-base);border:1px solid var(--border-strong);padding:0.5rem;border-radius:4px;">
+          <option value="">(None)</option>
+          <option value="Inciting Incident">Inciting Incident</option>
+          <option value="Catalyst">Catalyst</option>
+          <option value="Debate">Debate</option>
+          <option value="Plot Point 1">Plot Point 1</option>
+          <option value="Fun & Games">Fun & Games</option>
+          <option value="B-Story">B-Story</option>
+          <option value="Midpoint">Midpoint</option>
+          <option value="Bad Guys Close In">Bad Guys Close In</option>
+          <option value="All Is Lost">All Is Lost</option>
+          <option value="Soul Searching">Soul Searching</option>
+          <option value="Plot Point 2">Plot Point 2</option>
+          <option value="Finale">Finale</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions" style="margin-top:1.5rem;">
+        <button class="btn-ghost" onclick="closeBeatModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveBeat()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Booklet Modal -->
+  <div class="modal-overlay hidden" id="booklet-modal">
+    <div class="booklet-preview-container">
+      <div class="booklet-header">
+        <button class="btn-ghost" onclick="closeBooklet()">Close Preview</button>
+        <button class="btn-primary" onclick="window.print()">Print to PDF</button>
+      </div>
+      <div class="booklet-content" id="booklet-content">
+        <!-- Generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+    <footer class="status-bar">
+      <span id="status-page">p. 1</span>
+      <span class="status-sep">·</span>
+      <span id="status-scenes">0 scenes</span>
+      <span class="status-sep">·</span>
+      <span id="status-words">0 words</span>
+      <span class="status-sep">·</span>
+      <span id="status-chars">0 chars</span>
+      <div class="status-right">
+        <span class="conn-indicator" id="conn-indicator">Offline</span>
+        <button class="topbar-btn" onclick="toggleNotes()" title="Notes">Notes</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Character Autocomplete -->
+  <div class="autocomplete-dropdown hidden" id="autocomplete-dropdown"></div>
+
+  <!-- Invite Modal -->
+  <div class="modal-overlay hidden" id="invite-modal">
+    <div class="modal-box modal-small">
+      <h3>Invite Collaborator</h3>
+      <p style="color:var(--text-muted);margin-bottom:1rem;font-size:.875rem;">Share this link to invite someone to edit this script.</p>
+      <div class="invite-link-box">
+        <input type="text" id="invite-link-input" readonly />
+        <button class="btn-accent" onclick="copyInviteLink()">Copy</button>
+      </div>
+      <button class="btn-ghost" onclick="generateInviteLink()" id="gen-invite-btn">Generate Link</button>
+      <div class="modal-actions" style="margin-top:1rem;">
+        <button class="btn-ghost" onclick="closeInviteModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/editor.js"></script>
+  <script src="/js/collab.js"></script>
+  <script src="/js/ai.js"></script>
+  <script src="/js/guide.js"></script>
+  <script>
+    function toggleExportMenu() {
+      document.getElementById('export-menu').classList.toggle('hidden');
+    }
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('export-wrapper')?.contains(e.target)) {
+        document.getElementById('export-menu')?.classList.add('hidden');
+      }
+    });
+    async function exportFormat(fmt) {
+      document.getElementById('export-menu')?.classList.add('hidden');
+      const btn = document.getElementById('export-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Generating…';
+      btn.disabled = true;
+      try {
+        const scriptId = window.location.pathname.split('/').pop();
+        const res = await Auth.apiFetch(`/api/scripts/${scriptId}/export/${fmt}`, { method: 'POST' });
+        if (!res || !res.ok) throw new Error('Export failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const title = document.getElementById('script-title')?.value || 'script';
+        const exts = { pdf: '.pdf', docx: '.docx', fdx: '.fdx' };
+        a.download = title.replace(/\s+/g, '_') + (exts[fmt] || '.pdf');
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch(e) { alert('Export failed: ' + e.message); }
+      finally { btn.textContent = orig; btn.disabled = false; }
+    }
+    function toggleAIPanel() {
+      const panel = document.getElementById('ai-chat-panel');
+      if (panel) {
+        panel.classList.contains('hidden') ? openAIPanel() : closeAIPanel();
+      }
+    }
+
+    // Theme logic
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('editorTheme', theme);
+    }
+    
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    }
+    
+    // Actions Menu
+    const actionsBtn = document.getElementById('actions-btn');
+    const actionsMenu = document.getElementById('actions-menu');
+    if (actionsBtn) {
+      actionsBtn.onclick = (e) => { e.stopPropagation(); actionsMenu.classList.toggle('hidden'); };
+    }
+    document.addEventListener('click', () => { if (actionsMenu) actionsMenu.classList.add('hidden'); });
+
+    // Formatting More Menu
+    const elMoreBtn = document.querySelector('.el-more-trigger');
+    const elMoreMenu = document.getElementById('el-more-menu');
+    if (elMoreBtn) {
+      elMoreBtn.onclick = (e) => { e.stopPropagation(); elMoreMenu.classList.toggle('hidden'); };
+    }
+    document.addEventListener('click', () => { if (elMoreMenu) elMoreMenu.classList.add('hidden'); });
+    
+    document.querySelectorAll('.el-menu-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        elMoreMenu.classList.add('hidden');
+        if (window.ScriptEditor) {
+          window.ScriptEditor.setElementType(btn.dataset.type);
+        }
+      });
+    });
+
+    // Init theme
+    const savedTheme = localStorage.getItem('editorTheme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    }
+
+    // World Building Logic
+    function switchMode(mode) {
+      document.getElementById('tab-script').classList.toggle('active', mode === 'script');
+      document.getElementById('tab-world').classList.toggle('active', mode === 'world');
+      document.getElementById('tab-chars').classList.toggle('active', mode === 'chars');
+      
+      document.getElementById('script-mode-view').classList.toggle('hidden', mode !== 'script');
+      document.getElementById('world-building-view').classList.toggle('hidden', mode !== 'world');
+      document.getElementById('character-arcs-view').classList.toggle('hidden', mode !== 'chars');
+      
+      document.getElementById('element-toolbar').classList.toggle('hidden', mode !== 'script');
+    }
+
+    async function scrapeShots() {
+      const visuals = document.getElementById('wb-visuals').value;
+      if (!visuals) {
+        alert('Please describe your visual concept first.');
+        return;
+      }
+      const grid = document.getElementById('wb-shot-grid');
+      grid.innerHTML = '<div class="wb-shot-empty">Scraping cinematic databases...</div>';
+      
+      try {
+        const res = await Auth.apiFetch('/api/world/shots', {
+          method: 'POST',
+          body: { concept: visuals }
+        });
+        const data = await res.json();
+        
+        if (data.shots && data.shots.length > 0) {
+          grid.innerHTML = '';
+          data.shots.forEach(shot => {
+            grid.innerHTML += `<div class="wb-shot-item">
+              <img src="${shot.url}" alt="Cinematic Reference">
+              <div class="wb-shot-desc">${shot.keyword}</div>
+            </div>`;
+          });
+        } else {
+          grid.innerHTML = '<div class="wb-shot-empty">No shots found. Try a different concept.</div>';
+        }
+      } catch (e) {
+        grid.innerHTML = `<div class="wb-shot-empty" style="color:var(--danger)">Error: ${e.message}</div>`;
+      }
+    }
+
+    async function syncFromScript() {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = 'Analyzing Script...';
+      btn.disabled = true;
+      
+      try {
+        const res = await Auth.apiFetch('/api/world/sync', {
+          method: 'POST',
+          body: { scriptText: getFullScriptText() }
+        });
+        const data = await res.json();
+        
+        if (data.analysis) {
+          document.getElementById('wb-synopsis').value = data.analysis.synopsis || '';
+          document.getElementById('wb-visuals').value = data.analysis.visuals || '';
+          document.getElementById('wb-directors').value = data.analysis.directorsStatement || '';
+        }
+      } catch (e) {
+        alert('Sync failed: ' + e.message);
+      } finally {
+        btn.textContent = orig;
+        btn.disabled = false;
+      }
+    }
+
+    function showBookletPreview() {
+      const modal = document.getElementById('booklet-modal');
+      const content = document.getElementById('booklet-content');
+      const title = document.getElementById('script-title').value;
+      const synopsis = document.getElementById('wb-synopsis').value;
+      const visuals = document.getElementById('wb-visuals').value;
+      const directors = document.getElementById('wb-directors').value;
+      const shots = [...document.querySelectorAll('.wb-shot-item img')].map(img => img.src);
+
+      content.innerHTML = `
+        <div class="booklet-page">
+          <h1 class="booklet-title">${title}</h1>
+          <div class="booklet-meta">Project Concept & Visual Deck</div>
+          <div class="booklet-section">
+            <label>Logline & Synopsis</label>
+            <p>${synopsis.replace(/\n/g, '<br>')}</p>
+          </div>
+          <div class="booklet-shots">
+            ${shots.slice(0, 2).map(s => `<img src="${s}" class="booklet-main-img">`).join('')}
+          </div>
+          <div class="booklet-section">
+            <label>Visual Direction</label>
+            <p>${visuals.replace(/\n/g, '<br>')}</p>
+          </div>
+          <div class="booklet-shots-grid">
+            ${shots.slice(2).map(s => `<img src="${s}">`).join('')}
+          </div>
+          <div class="booklet-section">
+            <label>Director's Statement</label>
+            <p>${directors.replace(/\n/g, '<br>')}</p>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeBooklet() {
+      document.getElementById('booklet-modal').classList.add('hidden');
+    }
+
+    function generatePitchDeck() {
+      alert('Generating aesthetic Pitch Deck PDF based on Logline, Director Statement, and Scraped Images... (Prototype Triggered)');
+      // In a full implementation, this would send the WB data to the backend for PDF/HTML formatting.
+    }
+  </script>
+</body>
+</html>
