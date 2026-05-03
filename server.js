@@ -563,6 +563,9 @@ const wss = new WebSocket.Server({ server, path: '/collab' });
 // Map: scriptId → Set of { ws, user, clientId }
 const rooms = new Map();
 
+// Map: scriptId → { title, content } (Live cache)
+const roomDocs = new Map();
+
 // Awareness state: clientId → { user, cursor }
 const awareness = new Map();
 
@@ -592,7 +595,15 @@ wss.on('connection', (ws, req) => {
   ws.scriptId = scriptId;
   ws.user = user;
 
-  if (!rooms.has(scriptId)) rooms.set(scriptId, new Set());
+  if (!rooms.has(scriptId)) {
+    rooms.set(scriptId, new Set());
+    // Init cache from DB if not present
+    const script = stmts.getScript.get(scriptId);
+    roomDocs.set(scriptId, { 
+      title: script.title, 
+      content: JSON.parse(script.content || '[]') 
+    });
+  }
   rooms.get(scriptId).add(ws);
 
   awareness.set(clientId, { user: { id: user.id, name: user.displayName, color: user.color }, cursor: null });
@@ -606,9 +617,21 @@ wss.on('connection', (ws, req) => {
 
       switch (msg.type) {
         case 'doc-update':
+          // Update our live cache
+          const doc = roomDocs.get(scriptId);
+          if (doc && msg.ops) {
+            msg.ops.forEach(op => {
+              if (op.type === 'insert') doc.content.splice(op.index, 0, op.block);
+              if (op.type === 'delete') doc.content.splice(op.index, 1);
+              if (op.type === 'textUpdate' && doc.content[op.index]) doc.content[op.index].text = op.text;
+              if (op.type === 'typeChange' && doc.content[op.index]) doc.content[op.index].type = op.newType;
+              if (op.type === 'metadataUpdate' && doc.content[op.index]) {
+                doc.content[op.index] = { ...doc.content[op.index], ...op.meta };
+              }
+            });
+          }
           // Relay document operations to all other clients
           broadcastToRoom(scriptId, ws, { type: 'doc-update', ops: msg.ops, clientId });
-          // Auto-save to DB every 30 ops or on explicit save
           break;
 
         case 'awareness':
@@ -622,6 +645,8 @@ wss.on('connection', (ws, req) => {
           const canSave = stmts.canAccess.get(scriptId, user.id, scriptId, user.id);
           if (canSave) {
             stmts.updateScript.run(title, JSON.stringify(content), scene_count || 0, word_count || 0, scriptId);
+            // Also update cache title
+            if (roomDocs.has(scriptId)) roomDocs.get(scriptId).title = title;
           }
           ws.send(JSON.stringify({ type: 'saved', timestamp: Date.now() }));
           break;
@@ -638,18 +663,21 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     rooms.get(scriptId)?.delete(ws);
-    if (rooms.get(scriptId)?.size === 0) rooms.delete(scriptId);
+    if (rooms.get(scriptId)?.size === 0) {
+      rooms.delete(scriptId);
+      roomDocs.delete(scriptId); // Free memory when no one is in the room
+    }
     awareness.delete(clientId);
     broadcastPresence(scriptId);
   });
 
-  // Send initial state
-  const script = stmts.getScript.get(scriptId);
+  // Send initial state from cache (much more reliable)
+  const cached = roomDocs.get(scriptId);
   ws.send(JSON.stringify({
     type: 'init',
     clientId,
-    content: JSON.parse(script.content),
-    title: script.title
+    content: cached.content,
+    title: cached.title
   }));
 });
 
